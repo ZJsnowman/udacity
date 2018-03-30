@@ -23,7 +23,6 @@ features_list = ['poi', 'salary', 'bonus', 'total_payments', 'deferral_payments'
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
-### add by @lj
 import matplotlib.pyplot as plt
 
 print "\n", "######### total numbers of data point:"
@@ -99,14 +98,12 @@ for key, value in data_dict.items():
 
 #
 
-### end by @lj
 
 ### Task 2: Remove outliers
 
 ### Store to my_dataset for easy export below.
 my_dataset = data_dict
 
-### add by lj
 my_dataset.pop("TOTAL")
 my_dataset.pop("THE TRAVEL AGENCY IN THE PARK")
 my_dataset.pop("LOCKHART EUGENE E")
@@ -201,7 +198,6 @@ features_list = ["poi"] + [x[0] for x in Select_K_Best(my_dataset, features_list
 
 print "\n", features_list
 
-### end by @lj
 
 ### Extract features and labels from dataset for local testing
 data = featureFormat(my_dataset, features_list, sort_keys=True)
@@ -325,25 +321,7 @@ print "Decision Tree Classifier:", round(time() - t4, 3), "s"
 ##  Test Point
 print "\nRandomForest:\n", test_classifier(clf_RF, my_dataset, features_list)
 
-### 5. AdaBoost
-from sklearn.ensemble import AdaBoostClassifier
 
-t5 = time()
-
-clf_AB = AdaBoostClassifier(algorithm='SAMME')
-parameters = {'learning_rate': [0.1, 0.5, 1.0, 5.0], \
-              'algorithm': ['SAMME', 'SAMME.R'], \
-              'n_estimators': [1, 5, 10, 50, 100]}
-gs = GridSearchCV(clf_AB, parameters)
-gs.fit(features_train, labels_train)
-
-clf_AB = gs.best_estimator_
-
-print "\nAdaBoost:\n", clf_AB.score(features_train, labels_train)
-print "Decision Tree Classifier:", round(time() - t5, 3), "s"
-
-##  Test Point
-print "\nAdaBoost:\n", test_classifier(clf_AB, my_dataset, features_list)
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
