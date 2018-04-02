@@ -8,6 +8,21 @@ sys.path.append("../tools/")
 from feature_format import featureFormat, targetFeatureSplit
 from tester import dump_classifier_and_data
 from time import time
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.feature_selection import SelectPercentile, SelectKBest
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.cross_validation import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+from tester import dump_classifier_and_data, test_classifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import tree
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.cross_validation import train_test_split
 
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
@@ -23,7 +38,7 @@ features_list = ['poi', 'salary', 'bonus', 'total_payments', 'deferral_payments'
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
 
-import matplotlib.pyplot as plt
+
 
 print "\n", "######### total numbers of data point:"
 print len(data_dict)
@@ -120,8 +135,7 @@ print len(my_dataset)
 # plt.show()
 
 #
-import numpy as np
-import pandas as pd
+
 
 df = pd.DataFrame.from_dict(data_dict, orient='index')
 df.replace('NaN', np.nan, inplace=True)
@@ -176,7 +190,7 @@ for i in data_dict:
 ### Task 1: Select what features you'll use.
 ### features_list is a list of strings, each of which is a feature name.
 ### The first feature must be "poi".
-from sklearn.feature_selection import SelectPercentile, SelectKBest
+
 
 
 def Select_K_Best(data_dict, features_list, k):
@@ -204,7 +218,7 @@ data = featureFormat(my_dataset, features_list, sort_keys=True)
 labels, features = targetFeatureSplit(data)
 
 ##
-from sklearn.preprocessing import MinMaxScaler
+
 
 print "\n", features[0:3]
 
@@ -223,15 +237,13 @@ print "\n", features_new[0:3]
 
 labels = np.asarray(labels)
 
-from sklearn.cross_validation import train_test_split
+
 
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
 
 ## 1. GaussianNB
-from sklearn.naive_bayes import GaussianNB
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import GridSearchCV
+
 
 t1 = time()
 
@@ -248,13 +260,12 @@ print "\nGaussianNB score:\n", clf_NB.score(features_train, labels_train)
 print "GaussianNB score time:", round(time() - t1, 3), "s"
 
 ##  Test Point
-from tester import dump_classifier_and_data, test_classifier
+
 
 print "\nGaussianNB:\n", test_classifier(clf_NB, my_dataset, features_list)
 
 ## 2. Decision Tree Classifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn import tree
+
 
 t2 = time()
 
@@ -279,7 +290,7 @@ print "\nDecision Tree Classifier Test Point:\n", test_classifier(clf_DT, my_dat
 
 ## 3. SVM
 
-from sklearn.svm import SVC
+
 
 parms = {'svc__kernel': ('linear', 'rbf'), 'svc__C': [1.0, 2.0]}
 
@@ -300,7 +311,7 @@ print "Decision Tree Classifier:", round(time() - t3, 3), "s"
 print "\nSVM:\n", test_classifier(clf_SVC, my_dataset, features_list)
 
 ### 4. RandomForest
-from sklearn.ensemble import RandomForestClassifier
+
 
 t4 = time()
 
@@ -331,7 +342,7 @@ print "\nRandomForest:\n", test_classifier(clf_RF, my_dataset, features_list)
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
 # Example starting point. Try investigating other evaluation techniques!
-from sklearn.cross_validation import train_test_split
+
 
 features_train, features_test, labels_train, labels_test = \
     train_test_split(features, labels, test_size=0.3, random_state=42)
