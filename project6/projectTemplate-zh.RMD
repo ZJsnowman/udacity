@@ -1,7 +1,5 @@
----
-title: "红葡萄酒数据质量分析报告"
-output: html_notebook
----
+红葡萄酒数据质量分析报告
+
 ========================================================
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
@@ -18,7 +16,7 @@ library(ggplot2)
 library(GGally)
 ```
 
-# 数据基结构
+# 数据集结构
 选择的是红葡萄酒质量数据集
 
 ## 概述
@@ -45,16 +43,11 @@ str(wine)
 summary(wine)
 ```
 
-# 单变量绘图选择
-```{r echo=FALSE, Univariate_Plots}
-
-
-```
 
 # 单变量分析
 1. 红酒质量的分布状况
 
-大部分葡萄酒质量分布集中在5和6之间，即中等及中等偏上，品质很好和品质很差的红酒都很少，红酒品质呈正态分布。
+大部分葡萄酒质量分布集中在5和6之间.集中在中间部分
 
 ```{r echo=FALSE}
 table(wine$quality)
@@ -63,7 +56,7 @@ table(wine$quality)
 
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
-# 因为单变量分析中一般使用直方图，下面创建一个直方图的公用函数
+# 创建一个直方图的公用函数
 univ_histogram <- function(feature,width) {
     ggplot(data=wine, aes_string(x = feature)) + 
     geom_histogram(binwidth = width)
@@ -388,55 +381,238 @@ ggplot(wine,aes(factor(quality), volatile.acidity,color=..x..)) +
 # 双变量分析
 
 ### 探讨你在这部分探究中观察到的一些关系。这些感兴趣的特性与数据集内其他特性有什么区别？
+这部分集中探索了两个变量的分布关系，例如
+- 柠檬酸与红酒品质的分布，硫酸盐与二氧化硫的分布，之前凭直觉认为两者的关联性很强，但经过绘图与分析发现直觉是错误的，并没有太强的关联关系。
+- 酒精度数与密度的分布，以及各种酸度与PH的分布，与预想的结果类似，这些分布的两个变量之间存在较强的相关性。
+- 酒精度数与红酒品质的分布，这个结果是没有料到的，从图形上看，酒精度数对红酒品质的影响很大。
 
+通过数据集中的介绍，以及主观的判断，觉得关联关系强的变量，经过分析，事实上没有太强的关联关系。说明在数据分析过程中，不能凭主观的判断，必须通过客观的统计分析才能得出正确的结论。
 ### 你是否观察到主要特性与其他特性之间的有趣关系？
-
+从数据集的介绍中了解到，硫酸盐是一种用于产生二氧化硫的添加剂，但是经过绘图和分析，硫酸盐与总二氧化硫，硫酸盐与游离二氧化硫之间相关关系非常小，这一点比较意外。
 ### 你发现最强的关系是什么？
+最强的关系是酒精度数与密度的关系。
 
 
 
 
 # 多变量绘图选择
 
-```{r echo=FALSE, Multivariate_Plots}
+##  挥发性酸/酒精度/硫酸盐等与红酒品质的多变量绘图
 
+从上面双变量分析中可知，挥发性酸度和酒精度对红酒品质影响较大，下面将这三个变量放在一个图中进行分析，从下图可以看出，随着红酒品质的升高，分布逐渐集中到左上区域，即品质越高，酒精度约高，挥发性酸越低。
+
+```{r echo=FALSE}
+univ_point("volatile.acidity","alcohol",0.3)+
+  facet_wrap(~quality,ncol = 3)
 ```
+
+下面再加一个变量硫酸盐：
+
+
+```{r echo=FALSE}
+ggplot(aes(x=volatile.acidity,y=alcohol),data=wine) + 
+  geom_point(aes(colour=wine$sulphates),alpha=0.3) + 
+  facet_wrap(~quality,ncol = 3) +
+  theme(legend.position="top") + scale_fill_gradientn(colours = terrain.colors(10))
+```
+
+
+从上面的图形很难看出硫酸盐对品质的影响。下面将通过quality再生成一个变量grade，分成三个level，分别为low(4分以及以下)，medium(5和6),high(7分及以上)，再重新绘图：
+
+```{r echo=FALSE}
+wine$grade <-  cut(wine$quality,breaks = c(0,4,6,8))
+levels(wine$grade) <- list(low="(0,4]", medium="(4,6]", high="(6,8]")
+table(wine$grade)
+```
+
+```{r echo=FALSE}
+ggplot(aes(x=volatile.acidity,y=alcohol),data=wine) + 
+  geom_point(aes(color=wine$sulphates),alpha=0.3) + 
+  facet_wrap(~grade,ncol = 3)+
+  theme(legend.position="top") + scale_fill_gradientn(colours = terrain.colors(10))
+```
+
+上图中，在红酒等级为high时，其冷色调的点密度较等级为low和medium时高，说明从整体上，硫酸盐高的红酒，其品质也更高。
+
+## 硫酸盐/游离二氧化硫/总二氧化硫量/品质的多变量绘图
+
+根据数据集介绍，硫酸盐是一种会产生二氧化硫的添加剂，但是经过下图的分析，各个品质的红酒中，游离二氧化硫与总二氧化硫有很强的正相关，但是硫酸盐与游离二氧化硫和总二氧化硫之间并无明显相关性。
+
+```{r echo=FALSE}
+ggplot(aes(x=free.sulfur.dioxide,y=total.sulfur.dioxide),data=wine) + 
+  geom_point(aes(color=sulphates),alpha=0.3) + geom_smooth(method = 'lm', color='red') + 
+  theme(legend.position="top") + 
+  scale_fill_gradientn(colours = terrain.colors(10)) + facet_wrap(~quality,ncol = 3)
+```
+
+
+
+## 酒精浓度/密度/红酒品质之间的多变量分布图
+
+根据数据集介绍，密度与酒精浓度有关，下面是在不同品质下，酒精度数与水密度之间的分布图:
+- 红酒品质越高，酒精度数整体越高
+- 酒精度数越高，水密度整体越低
+
+```{r echo=FALSE}
+ggplot(aes(x = alcohol, y = density, color =quality), data = wine) +
+  geom_point(alpha = 0.3, size = 1, position = 'jitter') +
+  geom_smooth(method = "lm", se = FALSE,size=1) + 
+  scale_fill_gradient("Quality",low = "green", high = "blue")
+```
+
+
+
+
+##  线性模型
+
+通过线性模型，能基于红酒的各种化学特征，对红酒品质进行预测。
+按照特征与品质之间的相关强度，递增的方式建立模型。
+
+```{r echo=FALSE}
+m1 <- lm(formula = quality ~ volatile.acidity, data = wine)
+m2 <- update(m1,~ . + alcohol)
+m3 <- update(m2,~ . + sulphates)
+m4 <- update(m3,~ . + citric.acid)
+m5 <- update(m4,~ . + total.sulfur.dioxide)
+m6 <- update(m5,~ . + chlorides)
+m7 <- update(m6,~ . + density)
+
+#install.packages("memisc")
+suppressMessages(library(lattice))
+suppressMessages(library(MASS))
+suppressMessages(library(memisc))
+mtable(m1,m2,m3,m4,m5,m6,m7)
+```
+
+当模型选取6个参数时有最小的AIC值，加入第七个参数后其AIC又开始增加。
+
+最终模型应该是如下：
+`quality = 2.985 - 1.104*volatile.acidity + 0.276*alcohol +
+0.908*sulphates + 0.065*citric.acid - 
+0.002*total.sulfur.dioxide - 1.763*chlorides`
 
 # 多变量分析
 
 ###  探讨你在这部分探究中观察到的一些关系。通过观察感兴趣的特性，是否存在相互促进的特性？
+通过上面的单变量和双变量分析，都没有发现对红酒品质产生决定性影响的变量，通过对多变量的分析，观察到了如下影响到红酒品质的关系：
+- 挥发性酸越低，红酒品质越高
+- 硫酸盐越高，红酒品质也越高
+- 酒精浓度越高，红酒品质也越高
+
+另外，存在如下的相互促进的特性:
+- 酒精浓度越高，密度越低
+- 游离二氧化硫越高，总二氧化硫越高
+因为这些特性之间存在某种关联，会构成相互促进的特性也合乎逻辑。
 
 ### 这些特性之间是否存在有趣或惊人的联系呢？
+通过上面的分析，了解到挥发性酸,硫酸盐,以及酒精浓度是对红酒品质影响最大的变量，前两种分别是酸味和咸味，后一种作为酒类最重要的组成元素，这三类味觉对红酒品质影响最大，这也符合常识。
 
 ### 选项：你是否创建过数据集的任何模型？讨论你模型的优缺点。
-
+创建了一个线性模型，递增使用了7个变量，选取了AIC值最小时的6个变量建立的线性模型，这6个变量没有经过任何处理，所以红酒品质预测结果与这6个变量完全是线性关系，所以最终结果可能不是很准确。
 ------
 
 # 定稿图与总结
 
 ### 绘图一
-```{r echo=FALSE, Plot_One}
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# 公用函数
+univ_boxplot_grade <- function(featureY,title,ylab) {
+    ggplot(wine,aes_string(x="grade", y=featureY)) + 
+    geom_jitter(alpha=0.2,aes(color = quality)) +
+    geom_boxplot( alpha = 0.5,aes(fill = quality)) +
+    scale_fill_gradient("Quality",low = "green", high = "blue") +
+    stat_summary(fun.y = "mean", 
+      geom = "point", 
+      color = "red")+
+    geom_smooth(method='lm', aes(group = 1)) + 
+    ggtitle(title) + 
+    ylab(ylab)+
+    theme(legend.text=element_text(size=10),legend.title=element_text(size=10)) + 
+    theme(legend.position="top")     + 
+    theme(plot.title = element_text(size = 14, face = "bold")) + 
+    theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=12))
+}
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+p1 <- univ_boxplot_grade("volatile.acidity","Volatile.acidity vs Wine quality",
+                         "density(g/ml)")
+
+p2 <- univ_boxplot_grade("alcohol","Alcohol vs Wine quality","alcohol(°)")
+
+p3 <- univ_boxplot_grade("citric.acid","Citric.acid vs Wine quality",
+                         "citric.acid(g/ml)")
+
+p4 <- univ_boxplot_grade("alcohol","Sulphates vs Wine quality",
+                         "sulphates(g/ml)")
+
+library(gridExtra)
+grid.arrange(p1,p2,ncol=2)
+grid.arrange(p3,p4,ncol=2)
 
 ```
 
 ### 描述一
-
+针对上面的quality/alcohol(plot-2)和quality/volatile.acidity(plot-2)，能够发现quality与alcohol和volatile.acidity之间的一些变化趋势，下面将红酒品质处理成了三个等级分别为low(0,4], medium(4,6], high(6,8]，另外对density和citric.acid也做同样的绘图。
+从四个图形中能得到如下结论：
+- 大部分的红酒其品质居中
+- 红酒品质越高，挥发性酸`volatile.acidity`整体上越低
+- 红酒品质越高，酒精度数`alcohol`，柠檬酸 `citric.acid`和硫酸盐`sulphates`整体上越低
 
 ### 绘图二
-```{r echo=FALSE, Plot_Two}
-
+```{r echo=FALSE}
+ggplot(aes(x = alcohol, y = density, color = factor(quality)), data = wine) +
+  geom_point(alpha = 0.5, size = 1, position = 'jitter') +
+  geom_smooth(method = "lm", se = FALSE,size=1) +
+  scale_color_brewer(palette = "Blues") +
+ ggtitle("Alcohol vs Density")+
+ ylab("density (g/ml)")+
+ xlab("alcohol content (mg/L)")+
+  theme(legend.text=element_text(size=10),legend.title=element_text(size=10)) + 
+  theme(legend.position="right") + 
+  theme(plot.title = element_text(size = 14, face = "bold")) + 
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=12))
 ```
 
 ### 描述二
-
+在不同品质下，酒精度数与水密度之间的分布图，从图中可以看出:
+- 红酒品质越高，酒精度数整体越高
+- 酒精度数越高，水密度整体越低
 
 ### 绘图三
-```{r echo=FALSE, Plot_Three}
-
+```{r echo=FALSE}
+ggplot(wine, aes(x=alcohol, color=grade, fill=grade)) +
+  geom_histogram( position="identity", alpha=0.2,binwidth = 0.2)+
+  geom_density(alpha=0.6)+
+  scale_color_manual(values=c("#7CB9E8", "#72A0C1", "#00308F"))+
+  scale_fill_manual(values=c("#7CB9E8", "#72A0C1", "#00308F"))+
+  labs(title="Alcohol vs Count",x="Alcohol(°)", y = "Count") +
+  theme(legend.text=element_text(size=10),legend.title=element_text(size=10)) + 
+  theme(legend.position="right") + 
+  theme(plot.title = element_text(size = 14, face = "bold")) + 
+  theme(axis.text=element_text(size=12),
+        axis.title=element_text(size=12))
 ```
 
 ### 描述三
+在上面的双变量分析中，探讨了红酒品质与酒精浓度的关系，但是该图红酒品质分级过多，不是一目了然。下面使用综合后的品质属性grade，与酒精浓度进行绘图。
+
+如下是不同红酒品质下，不同酒精度数红酒的数量分布，从下面的分布图中可以看出:
+- 大部分红酒品质居中
+- 随着度数增加，品质高的红酒增加
 
 ------
 
 # 反思
+本数据集包含了1599条记录，11个变量，通过分析这些变量与品质之间的相关关系，判断变量是如何影响红酒品质的。
+但是这些变量中没有哪种变量能够决定性的影响红酒品质，最终通过多个变量的分析，判断如下四种变量最能影响红酒品质：
+- 酒精度数，与品质呈正相关关系，度数越高品质趋向升高
+- 挥发性酸，与品质呈负相关关系，酸度越高品质趋向降低
+- 硫酸盐，与品质呈正相关关系，硫酸盐越多品质趋向升高
+- 柠檬酸，与品质呈正相关关系，酸度越高品质趋向降低,通过数据分析之前，认为柠檬酸与品质应该是强相关的，但是经过分析之后发现其相关度并不高
+
+另外，同样影响味觉的甜味和咸味，即变量残糖`residual.sugar`和氯化物`chlorides`，其对品质的影响微弱，可见得到一个结论需要科学的分析，不能凭直觉判断。
+
+后续如果引入机器学习进行分析，另外加大数据量，应该能更精确的分析哪些变量对红酒品质的影响.
