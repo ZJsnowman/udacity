@@ -65,10 +65,9 @@ univ_histogram <- function(feature,width) {
 
 
 ```{r echo=FALSE}
-ggplot(wine, aes(x=quality, fill=..x..)) + 
-  geom_histogram(binwidth=1) + 
-  scale_fill_gradient("Quality",low = "green", high = "blue")
-
+ggplot(wine, aes(x=quality)) + 
+  geom_histogram() + 
+  scale_x_continuous(breaks=seq(3,9,1))
 ```
 
 
@@ -141,10 +140,12 @@ wine$bound.sulfur.dioxide <-
 从数据集中的介绍中了解到如果`total sulfur dioxide`即总二氧化硫量大于50ppm的话，就会感受到二氧化硫的味道，但是看下图的分布，即使选取的样本的游离二氧化硫量大于50ppm，其品质也没有特别低，但是样本量太小，所以并不能说明二氧化硫大于50这种性质，与品质之间相关度低。具体还要后续分析。
 
 ```{r echo=FALSE}
-ggplot(aes(x = quality, fill=..x..), 
+ggplot(aes(x = quality), 
        data = subset(wine,wine$free.sulfur.dioxide > 50)) + 
-  geom_histogram(binwidth = 1) + 
-  scale_fill_gradient("Quality",low = "green", high = "blue")
+  geom_histogram() +
+  scale_x_continuous(breaks = seq(5,7,1))
+
+ 
 ```
 
 下图可以发现游离二氧化硫浓度，大部分介于2-40之间。
@@ -301,6 +302,7 @@ univ_histogram("citric.acid",0.01) +
 theme_set(theme_minimal(20))
 
 wine_subset <- wine[,c(2:13)]
+wine_subset<-subset(wine,select=-c(X,bound.sulfur.dioxide))
 ggp = ggpairs(wine_subset[sample.int(nrow(wine_subset), 1000),],
         lower = list(continuous = wrap(ggally_points, size = 0.5, color = "blue")),
         upper = list(continuous = wrap("cor", size = 6)))
@@ -566,6 +568,7 @@ ggplot(aes(x = alcohol, y = density, color = factor(quality)), data = wine) +
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   geom_smooth(method = "lm", se = FALSE,size=1) +
   scale_color_brewer(palette = "Blues") +
+  theme_dark()+
  ggtitle("Alcohol vs Density")+
  ylab("density (g/ml)")+
  xlab("alcohol content (mg/L)")+
