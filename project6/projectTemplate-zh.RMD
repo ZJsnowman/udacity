@@ -303,10 +303,11 @@ theme_set(theme_minimal(20))
 
 wine_subset <- wine[,c(2:13)]
 wine_subset<-subset(wine,select=-c(X,bound.sulfur.dioxide))
-ggp = ggpairs(wine_subset[sample.int(nrow(wine_subset), 1000),],
-        lower = list(continuous = wrap(ggally_points, size = 0.5, color = "blue")),
-        upper = list(continuous = wrap("cor", size = 6)))
-print(ggp, progress = F)  # no progress bar
+#ggp = ggpairs(wine_subset[sample.int(nrow(wine_subset), 1000),],
+       # lower = list(continuous = wrap(ggally_points, size = 0.5, color = "blue")),
+       # upper = list(continuous = wrap("cor", size = 6)))
+ggs=ggscatmat(wine_subset)+theme_gray(base_size = 5)
+print(ggs, progress = F)  # no progress bar
 
 #ggsave("all.jpeg")
 ```
@@ -315,69 +316,45 @@ print(ggp, progress = F)  # no progress bar
 下面分别进行双变量分析：
 
 (1). 质量与酒精度数的图如下，下图可以看出，品质好的红酒，其度数普遍高于品质差的红酒。
-从上到下的虚线分别表示，不同百分比处酒精浓度的变化曲线图：
-- 蓝色:90%
-- 绿色:50%
-- 黄色:平均值
-- 红色:10%
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-ggplot(aes(x=quality,y=alcohol, color=..x..),data=wine) + geom_jitter(alpha=0.3) +
-  geom_line(stat = "summary",fun.y = mean,color = "yellow") + 
-  geom_line(stat = "summary",fun.y = quantile,fun.args = list(probs = .1),
-            linetype = 2,color = "red") + 
-  geom_line(stat = "summary",fun.y = quantile,fun.args = list(probs = .5),
-            color = "green") + 
-  geom_line(stat = "summary",fun.y = quantile,fun.args = list(probs = .9),
-            linetype = 2,color = "blue") +
-  ggtitle("quality/alcohol(plot-1)") + scale_fill_gradient("Quality",low = "green", high = "blue")
+ggplot(aes(x=factor(quality),y=alcohol),data=wine) + geom_jitter(alpha=0.3) +
+ 
+  ggtitle("quality/alcohol(plot-1)") 
 
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-ggplot(wine,aes(factor(quality), alcohol,color=..x..) ) + 
+ggplot(wine,aes(factor(quality), alcohol) ) + 
   geom_jitter(alpha=0.3) +
-  geom_boxplot( alpha = 0.5,color = 'blue')+
+  geom_boxplot( alpha = 0.5)+
   stat_summary(fun.y = "mean", 
       geom = "point", 
       color = "red")+
   geom_smooth(method='lm', aes(group = 1)) + 
-  ggtitle("quality/alcohol(plot-2)")+ scale_fill_gradient("Quality",low = "green", high = "blue")
+  ggtitle("quality/alcohol(plot-2)")
 ```
 
 
 (2). 上面相同的方式，质量与挥发性酸度的图如下，从图上可以看出，品质好的红酒其挥发性酸度普遍低于品质低的红酒。
 
-从上到下的虚线分别表示，不同百分比处挥发性酸度的变化曲线图：
-- 蓝色:90%
-- 绿色:50%
-- 黄色:平均值
-- 红色:10%
 
 ```{r echo=FALSE}
-ggplot(aes(x=quality,y=volatile.acidity,color=..x..),data=wine) + 
+ggplot(aes(x=factor(quality),y=volatile.acidity),data=wine) + 
   geom_jitter(alpha=0.3) +
-  geom_line(stat = "summary",fun.y = mean,color = "yellow") + 
-  geom_line(stat = "summary",fun.y = quantile,fun.args = list(probs = .1),
-            linetype = 2,color = "red") + 
-  geom_line(stat = "summary",fun.y = quantile,fun.args = list(probs = .5),
-            color = "green") + 
-  geom_line(stat = "summary",fun.y = quantile,fun.args = list(probs = .9),
-            linetype = 2,color = "blue") +
-  ggtitle("quality/volatile.acidity(plot-1)")+ 
-  scale_fill_gradient("Quality",low = "green", high = "blue")
+  ggtitle("quality/volatile.acidity(plot-1)")
 
 ```
 
 ```{r echo=FALSE}
-ggplot(wine,aes(factor(quality), volatile.acidity,color=..x..)) + 
+ggplot(wine,aes(factor(quality), volatile.acidity)) + 
   geom_jitter(alpha=0.3) +
-  geom_boxplot( alpha = 0.5,color = 'blue')+
+  geom_boxplot( alpha = 0.5)+
   stat_summary(fun.y = "mean", 
       geom = "point", 
       color = "red")+
   geom_smooth(method='lm', aes(group = 1)) + 
-  ggtitle("quality/volatile.acidity(plot-2)")+ scale_fill_gradient("Quality",low = "green", high = "blue")
+  ggtitle("quality/volatile.acidity(plot-2)")
 ```
 
 # 双变量分析
@@ -456,10 +433,10 @@ ggplot(aes(x=free.sulfur.dioxide,y=total.sulfur.dioxide),data=wine) +
 - 酒精度数越高，水密度整体越低
 
 ```{r echo=FALSE}
-ggplot(aes(x = alcohol, y = density, color =quality), data = wine) +
+ggplot(aes(x = alcohol, y = density), data = wine) +
   geom_point(alpha = 0.3, size = 1, position = 'jitter') +
-  geom_smooth(method = "lm", se = FALSE,size=1) + 
-  scale_fill_gradient("Quality",low = "green", high = "blue")
+  geom_smooth(method = "lm", se = FALSE,size=1,color='red')
+
 ```
 
 
